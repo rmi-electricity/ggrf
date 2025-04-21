@@ -10,6 +10,7 @@ epsg_standard <- 4326  # Conform all coordinates to this projection
 
 fn_zillow <- '/Volumes/Extreme SSD/ggrf_insurance/input_data/zillow_sm_sa_month.csv'
 fn_zillow_clean <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/zillow_clean.parquet'
+fn_zillow_delta <-'/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/zillow_delta.parquet'
 
 fn_turbines <- '/Volumes/Extreme SSD/ggrf_insurance/input_data/uswtdbSHP/uswtdb_V8_0_20250225.shp'
 fn_turbines_out <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/turbines.parquet'
@@ -27,7 +28,49 @@ ZillowClean <-
 	select(-RegionID, -SizeRank, -RegionType, -StateName, -State, -City, -Metro, -CountyName) %>%
 	rename(zip_code = RegionName) %>%
 	gather(date, home_price, -zillow_observation_id, -zip_code) %>%
-	mutate(date = lubridate::ymd(date))
+	mutate(
+		date = lubridate::ymd(date),
+	)
+
+ZillowYearlyMedianHomePrices <-
+	ZillowClean %>%
+	drop_na %>%
+	mutate(
+		date = lubridate::round_date(date, 'year'),
+		year = lubridate::year(date),
+		year = as.integer(year)
+		) %>%
+	group_by(zip_code, year) %>%
+	summarize(median_home_price = median(home_price)) %>%
+	ungroup
+
+ZillowYearlyMedianHomePrices %>% 
+	is.na %>% 
+	colSums()
+
+year_range <- seq(min(ZillowYearlyMedianHomePrices$year), max(ZillowYearlyMedianHomePrices$year))
+
+CteZillowDelta <-
+	expand_grid(
+		year = year_range,
+		zip_code = unique(ZillowClean$zip_code)
+	) %>%
+	left_join(ZillowYearlyMedianHomePrices, by = c('year', 'zip_code')) %>%
+	arrange(zip_code, year) %>%
+	group_by(zip_code) %>%
+	mutate(
+		prev_value = lag(median_home_price),
+		delta = (median_home_price - prev_value)/prev_value
+	) %>%
+	ungroup
+
+ZillowDelta <-
+	CteZillowDelta %>%
+	select(year, zip_code, delta) %>%
+	drop_na
+#	
+
+ZillowDelta %>% write_parquet(fn_zillow_delta)
 ZillowClean %>% write_parquet(fn_zillow_clean)
 
 # Turbines
