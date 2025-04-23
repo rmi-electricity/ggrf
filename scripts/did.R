@@ -1,12 +1,18 @@
 library(tidyverse)
 library(skimr)
 library(arrow)
-library(lmer)
+# library(lme4)
 
 
 fn_zillow <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/zillow_clean.parquet'
 fn_turbines <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/turbines.parquet'
 fn_solar <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/solar.parquet'
+
+
+# images
+dir_out <- '/Users/andrewbartnof/Documents/rmi/ggrf_redux/writeup'
+fn_solar_facets <- file.path(dir_out, 'study1_solar_facets.png')
+fn_turbines_facets <- file.path(dir_out, 'study1_turbine_facets.png')
 
 Zillow <-
 	read_parquet(fn_zillow) %>%
@@ -19,11 +25,6 @@ Zillow <-
 	group_by(year, zip_code) %>%
 	summarize(home_price = median(home_price)) %>%
 	ungroup
-
-Zillow %>%
-	count(year, zip_code) %>%
-	pull(n) %>%
-	all(. == 1)
 	
 Turbines <-
 	read_parquet(fn_turbines) %>%
@@ -196,6 +197,72 @@ for (target_year in seq(2008L, 2018L)){
 	CollectedTurbines <- bind_rows(PriceDelta, CollectedTurbines)
 }
 
+
+AggregatedByYear <-
+	bind_rows(
+		CollectedSolar %>% mutate(manipulation = 'Solar'),
+		CollectedTurbines %>% mutate(manipulation = 'Turbines')
+	) %>%
+	mutate(
+		relative_year = year - target_year,
+		year = ordered(year)
+	) %>%
+	filter(relative_year != -6) %>%
+	group_by(manipulation, target_year, group, relative_year) %>%
+	summarize(median_price_delta = median(price_delta)) %>%
+	ungroup
+AggregatedByYear %>%
+	count(manipulation, target_year, group) %>%
+	pull(n) %>%
+	all(. == 11L)
+
+#
+g <-
+AggregatedByYear %>%
+filter(manipulation == 'Solar') %>%
+ggplot(aes(x = ordered(relative_year), y = median_price_delta, group = group, color = group)) +
+geom_hline(yintercept = 0, linetype = 'dashed') +
+geom_vline(xintercept = '0', linetype = 'dashed') +
+geom_line() +
+scale_color_manual(values = c('grey20', 'dodgerblue')) +
+facet_wrap(~target_year) +
+theme(
+	legend.position = 'bottom',
+	axis.ticks = element_blank(),
+	text = element_text(family = 'serif')
+) +
+labs(
+	color = '', 
+	x = 'Relative year', 
+	y = 'Median change in home prices',
+	title = 'Solar'
+)
+g
+ggsave(filename = fn_solar_facets, plot = g, width = 8, height = 8)
+
+AggregatedByYear %>%
+filter(manipulation == 'Turbines') %>%
+ggplot(aes(x = ordered(relative_year), y = median_price_delta, group = group, color = group)) +
+geom_hline(yintercept = 0, linetype = 'dashed') +
+geom_vline(xintercept = '0', linetype = 'dashed') +
+geom_line() +
+scale_color_manual(values = c('grey20', 'dodgerblue')) +
+facet_wrap(~target_year) +
+theme(
+	legend.position = 'bottom',
+	axis.ticks = element_blank()
+) +
+labs(
+	color = '', 
+	x = 'Relative year', 
+	y = 'Median change in home prices',
+	title = 'Turbines'
+)
+#	
+		
+
+
+
 MedianPriceDelta <-
 	bind_rows(
 		CollectedSolar %>% mutate(manipulation = 'Solar'),
@@ -203,26 +270,36 @@ MedianPriceDelta <-
 	) %>%
 	mutate(relative_year = year - target_year) %>%
 	group_by(manipulation, group, relative_year) %>%
-	summarize(median_price_delta = median(price_delta)) %>%
-	ungroup
+	summarize(
+		median_price_delta = median(price_delta),
+		# sd = sd(price_delta)
+	) %>%
+	ungroup %>%
+	filter(relative_year > -6)
 #	
 MedianPriceDelta %>%
 	spread(group, median_price_delta) %>%
 	mutate(is_control_greater = Control > Manipulation) %>%
-	filter(relative_year > -6) %>%
 	ggplot(aes(x = relative_year)) +
 	geom_hline(yintercept = 0, linetype = 'dotted') +
 	geom_vline(xintercept = 0, linetype = 'dotted') +
-	geom_segment(aes(xend = relative_year, y = Control, yend = Manipulation, color = is_control_greater)) +
+	geom_segment(
+		aes(xend = relative_year, y = Control, yend = Manipulation, color = is_control_greater), size = 1) +
+		# arrow = arrow(length = unit(0.5, "cm"), type='closed')) +
 	geom_label(aes(y = Control), color = 'grey20', label = 'C', label.r =  unit(.5, "lines")) +
 	geom_label(aes(y = Manipulation), color = 'dodgerblue', label = 'M', label.r =  unit(.5, "lines")) +
 	# geom_point(aes(y = Control), color = 'grey20', shape = 'C') +
 	# geom_point(aes(y = Manipulation), color = 'dodgerblue', shape = 'M') +
 	scale_color_manual(values = c('dodgerblue', 'grey20')) +
-	scale_x_continuous(breaks = seq(-5, 5)) +
+	scale_x_continuous(breaks = seq(-5, 5), labels = c(-5, -4, -3, -2, -1, 'Operational', 1, 2, 3, 4, 5)) +
+	scale_y_continuous(labels = scales::percent_format()) +
 	facet_wrap(~manipulation) +
-	theme(legend.position = 'none') +
-	labs(x = 'Relative year', y = 'Median appreciation', title = 'Property appreciation v previous year', 
+	theme(
+		legend.position = 'none',
+		axis.ticks.x = element_blank(),
+		panel.grid.minor.x = element_blank()
+	) +
+	labs(x = 'Relative year', y = 'Yearly appreciation', title = 'Property appreciation v previous year', 
 			 subtitle = 'When manipulation (M) is higher than control (C),\nthen properties in the same zip-code as a green energy project have a higher increase in property value\nvis-a-vis the previous year') 
 
 # Note that we have some pretty small sample sizes here
@@ -230,7 +307,10 @@ MedianPriceDelta %>%
 		CollectedSolar %>% mutate(manipulation = 'Solar'),
 		CollectedTurbines %>% mutate(manipulation = 'Turbines')
 	) %>%
-	count(year, manipulation, group, name = 'num_observations')
+	count(year, manipulation, group, name = 'num_observations') %>%
+	spread(group, num_observations) %>%
+		select(Control, Manipulation) %>%
+		colMeans
 #
 
 

@@ -1,0 +1,124 @@
+Introduction
+
+This paper documents two studies for the GGRF insurance project.
+If green energy projects (eg solar farms and wind turbines) are built near residential areas, these projects may hurt home values.
+This is a problem for a green transition, because it gives home-owners an incentive to resist green projects in their neighborhoods.
+We want to quantify this depression in home values, so that we can help to develop a new kind of financial project, a parametric risk insurance payout for home-owners near green energy projects.
+The idea is that for a limited around of time while the projects are being built, the home prices nearby be artificially lower than a home in a similar neighborhood with no green energy projects.
+If the home owner decides to sell their property during this period, the insurance product could cover the difference between the real house value and the counterfactual house value.
+(In this paper, we will refer to these scenarios as control, ie the market waxing and waning on its own; and manipulation, ie a construction project happening down the street from a house.)
+
+In order to quantify this effect, we'll use 'difference-in-difference' models. 
+A difference-in-difference model is ideal for quantifying the (relative) impact of a manipulation of a key metric (here, house value) over time.
+We'll use three key datasets:
+Zillow Home Prices
+This dataset lists the home prices from 26,344 zip-codes, between the years 2000 and 2024.
+
+Large-scale solar photovoltaic sites
+Fujita, K.S., Ancona, Z.H., Kramer, L.A. et al. Georectified polygon database of ground-mounted large-scale solar photovoltaic sites in the United States. Sci Data 10, 760 (2023). https://doi.org/10.1038/s41597-023-02644-8
+This dataset lists thousands of large-scale solar photovoltaic sites.
+For each known solar site, we extract both location and year of operation.
+
+Wind Turbines
+Rand, J.T., Kramer, L.A., Garrity, C.P. et al. A continuously updated, geospatially rectified database of utility-scale wind turbines in the United States. Sci Data 7, 15 (2020). https://doi.org/10.1038/s41597-020-0353-6
+This dataset lists thousands of wind turbines.
+Likewise, here, for each site, we extract both location and year of operation.
+
+The Zillow home prices dataset only gives us zip-codes of homes.
+As a result, we have linked each solar or turbine site to the zip-code that it most likely operates in.
+We consider a neighborhood to be impacted (manipulated) by green construction if it shares a zip-code with one of these projects.
+This is obviously a pretty rough spatial granularity, but it'll do.
+We also round all dates in these three datasets to the nearest year.
+Again, this is a rough temporal granularity, but again, it'll do.
+
+In study 1, we use a conventional difference-in-differences approach to test the impact of a green energy manipulation on a zip-code's home prices, over time.
+In study 2, we extract similar information from a multi-level linear regression model.
+Model 1 is a bit simpler; model 2 is a bit more statistically robust.
+
+Study 1
+
+How did the rate of change of home appreciation change for zip-codes that had solar or turbine projects in them?
+
+I think this study is really easy to understand with an example.
+In 1979, Jimmy Carter put solar panels on his house, in zip-code 20500.
+If we wanted to see if this solar panel project impacted the rate of home appreciation in zip-code 20500, we'd do the following:
+Look at the year-over-year rate of home appreciation in 20500 in 1979, and for reference, include the previous few years (say, 1974-1979), and a few years after (say, 1979-1984).
+Let's define home appreciation here as (current home price - last year's home price) / (last year's home price).
+Then we'd compare this to the median year-over-year rate of home appreciation of homes across the USA in zip-codes that didn't have any solar panels installed.
+We'd see two trend lines-- that of our manipulation situation (20500), and that of our control (all the other zip-codes without solar panels).
+The problem with the above study is that our manipulation group has an n of 1, so it would be a good idea to expand our manipulation group to all other zip-codes in the USA that had solar panels installed in 1979.
+
+This is the nature of study 1.
+The results can be seen here:
+
+The results are hard to interpret, because we can't control for general market trends using this kind of study.
+The other issue with study 1 is small sample size. 
+Perforce, the manipulation sizes for each of these diagrams is very small, and only a fraction of the size of the control group.
+In addition to this problem, while the observations in the manipulation group change in each of the diagrams, the observations in the manipulation group changes completely. 
+This means that individual outliers in the control group might be skewing our results.
+
+This brings us to study 2.
+Study 2 isn't a classic 'difference-in-difference' two-way fixed-effects study, because it controls for these issues using 1. more fixed-effects and 2. random effects.
+
+Study 2
+
+Study 2 is simply a mixed-effects linear regression model.
+The formula for our model looks like this:
+change in home price v. last year ~ year + solar_manipulation + turbine_manipulation + (1|zip_code)
+Interpretation:
+change in home price is the same as it was in study 1: (current home price - last year's home price) / (last year's home price).
+Year is the calendar year, represented as an unordered factor. 
+Solar manipulation:
+if a zip code ever had a solar plant built there, we encode the zip-code each year as one of the following:
+Construction: if only one solar plant is built in this zip-code, this is the year of operation. If multiple solar plants are built in this zip-code, this represents the duration between the first plant's year of operation and the last plant's year of operation. Construction indicates that we have faith that during this time period, workers and trucks were around.
+-5:-1: Years prior to year of first plant's operation
+1:5: Likewise, years after last plant's operation
+Censored: any year outside this -5:+5 range in a zip-code that will/has had solar plants
+
+Turbine manipulation:
+same encoding as solar manipulation
+
+Note that this model has a few advantages over study 1: we're accounting for general market swings by including year as a fixed-effect, and we can handle zip-codes that have multiple improvements built on them (in study 1, we only included a zip-code as a manipulation if it had either one solar facility or one turbine).
+
+zip-code: here, we model all zip-codes as random intercepts. This compensates for the mean difference in home appreciation in each zip-code
+
+The model is a successful one.
+We can compare the model with a null model, in which we omit turbine and solar data:
+change in home price v. last year ~ year + (1|zip_code)
+Here is the ANOVA comparing the two models. 
+As you can see, ...
+
+
+Here is the intra-class correlation.
+The ICC in a multi-level model tests the correlation between the random effects-- here, the zip-codes.
+A high ICC would indicate that a lot of the variance that our model is explaining is actually done just by grouping the zip-codes-- this would be an indication that our fixed effects aren't actually that important.
+We have a rather low ICC, ...
+
+Here is the full summary as given by R:
+
+And here are the fixed-effects, along with their 95% confidence-intervals.
+We can interpret any fixed-effect whose 95% CI doesn't include zero as much more likely to be an observable phenomenon.
+
+Interpretation:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

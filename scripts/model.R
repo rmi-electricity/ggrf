@@ -2,6 +2,7 @@ library(tidyverse)
 library(skimr)
 library(arrow)
 library(lme4)
+library(sjstats)
 
 
 fn_zillow_delta <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/zillow_delta.parquet'
@@ -9,8 +10,8 @@ fn_turbines <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/turbines.parque
 fn_solar <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/solar.parquet'
 
 ZillowDelta <- read_parquet(fn_zillow_delta) %>%
-	rename(home_price_change = delta)
-ZillowDelta
+	rename(home_price_change = delta) %>%
+	mutate(zip_code = factor(zip_code, ordered = FALSE))
 
 Turbines <-
 	read_parquet(fn_turbines) %>%
@@ -38,9 +39,51 @@ Solar <-
 	rename(id = eia_id) %>%
 	mutate_at(c('id', 'zip_code'), factor, ordered=FALSE)
 
+#### Diagnostics ####
+
 ZillowDelta %>% skim
 Turbines %>% skim
 Solar %>% skim
+
+ZillowDelta %>%
+	skim %>%
+	yank('numeric') %>%
+	as_tibble %>%
+	rename(min = p0, max = p100) %>%
+	select(skim_variable, n_missing, complete_rate, mean, sd, min, max)
+
+ZillowDelta %>%
+	skim %>%
+	yank('factor') %>%
+	as_tibble %>%
+	select(skim_variable, n_missing, complete_rate, ordered, n_unique)
+
+Turbines %>%
+	skim %>% 
+	yank('numeric') %>%
+	as_tibble %>%
+	rename(min = p0, max = p100) %>%
+	select(skim_variable, n_missing, complete_rate, mean, sd, min, max)
+
+Turbines  %>%
+	skim %>% 
+	yank('factor') %>% 
+	as_tibble %>%
+	select(skim_variable, n_missing, complete_rate, ordered, n_unique)
+
+Solar %>%
+	skim %>% 
+	yank('numeric') %>%
+	as_tibble %>%
+	rename(min = p0, max = p100) %>%
+	select(skim_variable, n_missing, complete_rate, mean, sd, min, max)
+
+Solar %>%
+	skim %>% 
+	yank('factor') %>% 
+	as_tibble %>%
+	select(skim_variable, n_missing, complete_rate, ordered, n_unique)
+
 # For each zip code:
 #		note the first and last occurrances of an object.
 #		count time as t-5, during, and t+5
@@ -151,7 +194,8 @@ JoinedData <-
 	mutate(
 		turbine_manipulation = fct_explicit_na(turbine_manipulation, 'Control'),
 		solar_manipulation = fct_explicit_na(solar_manipulation, 'Control'),
-		group = fct_explicit_na(group, 'Control')
+		group = fct_explicit_na(group, 'Control'),
+		year = factor(year, ordered = FALSE)
 	)
 JoinedData %>% head
 JoinedData %>% is.na %>% colSums
@@ -174,11 +218,10 @@ JoinedData %>%
 
 # Model
 # let's model year as a general categorical trend
-JoinedData
 mod1 <- lmer(
 	data = JoinedData,
 	REML = FALSE,
-	formula = home_price_change ~ factor(year, ordered = FALSE) + solar_manipulation + turbine_manipulation + (1|zip_code)
+	formula = home_price_change ~ year + solar_manipulation + turbine_manipulation + (1|zip_code)
 )
 
 mod0 <- lmer(
@@ -186,7 +229,12 @@ mod0 <- lmer(
 	REML = FALSE,
 	formula = home_price_change ~ factor(year, ordered = FALSE) + (1|zip_code)
 )
-# residuals look pretty normally distributed
+anova(mod1, mod0)
+
+# Goodness-of-fit Diagnostics
+
+# residuals look sufficiently normally distributed,
+# even if it doesn't pass the kolmogorov-smirnov test.
 (residuals(mod1)) %>%
 	enframe %>%
 	ggplot(aes(x = value)) +
@@ -194,63 +242,98 @@ mod0 <- lmer(
 	labs(x = 'Residuals', y = 'n', title = 'Model residuals') +
 	scale_y_continuous(labels = scales::comma_format())
 
-anova(mod1, mod0)
-mod1
-fixef(mod1)
+ks.test(residuals(mod1), 'pnorm')
 
-levels <- c( str_c(seq(-5, -1)), 'Construction', str_c(seq(1, 5)), 'Censored', 'Control')
+# ICC
+# the adj. intraclass cor. coef. is 0.021, which 
+# is rather low. this indicates that the fixed-effects
+# are doing much more of the heavy-lifting in our model
+# than the random effects (zip-codes) are, which is good
+# i think.
+icc <- performance::icc(mod1)
+icc
+
+
+#### Plot variables ####
+
+CI <- confint.merMod(mod1, method="Wald") %>%
+	as.data.frame %>%
+	rownames_to_column() %>%
+	rename(variable=1, `2.5%`=2, `97.5%`=3) %>%
+	drop_na()
+
 FixedEffects <-
-	fixef(mod1) %>%
-	enframe(name='fixef', value ='est') %>%
-	filter(str_detect(fixef, 'solar')|str_detect(fixef, 'turbine')) %>%
-	mutate(
-		manipulation = case_when(
-			str_detect(fixef, 'solar') ~ 'Solar',
-			str_detect(fixef, 'turbine') ~ 'Turbine',
-			TRUE ~ 'DEFAULT_UNKNOWN'
-		),
-		fixef = str_replace(fixef, '^.*manipulation', ''),
-		fixef = ordered(fixef, levels),
-		color = if_else(fixef %in% c('Construction', 'Censored'), 'Indeterminate state', 'Year')
-	) %>%
-	arrange(manipulation, fixef) 
+	fixef(mod1, add.dropped=FALSE) %>%
+	enframe(name = 'variable', value = 'estimate') %>%
+	full_join(CI, by = 'variable')
 
-FixEf <-
-	summary(mod1)$coefficients %>% 
-	as.data.frame %>% 
-	rownames_to_column(var='fixef') %>%
-	as_tibble %>%
-	select(fixef, estimate = Estimate, se = `Std. Error`) %>%
-	filter(str_detect(fixef, 'manipulation')) %>%
-	mutate(
-		manipulation_type = case_when(
-			str_detect(fixef, 'solar') ~ 'Solar',
-			str_detect(fixef, 'turbine') ~ 'Turbine',
-			TRUE ~ 'DEFAULT_UNKNOWN'
-		),
-		manipulation_state = str_replace(fixef, '^.*manipulation', ''),
-		manipulation_state = ordered(manipulation_state, levels),
-		color = if_else(manipulation_state %in% c('Construction', 'Censored', 'Control'), 'Indeterminate', 'Determinate'),
-		low = estimate - se,
-		high = estimate + se
+all_levels <-
+	c(
+		seq(-5, -1),
+		'Construction',
+		seq(1, 5),
+		'Censored',
+		'Control',
+		'(Intercept)',
+		seq(2002, 2024)
 	)
-FixEf	%>%
-	ggplot(aes(x = manipulation_state, color = color, y = estimate, ymin = low, ymax = high)) +
-	geom_hline(yintercept = 0) +
+
+FixedEffectsClean <-
+	FixedEffects %>%
+		mutate(
+			family = case_when(
+				str_detect(variable, 'year') ~ 'General',
+				str_detect(variable, 'Intercept') ~ 'General',
+				str_detect(variable, 'solar') ~ 'Solar',
+				str_detect(variable, 'turbine') ~ 'Turbine',
+			),
+			variable_adj = case_when(
+				family == 'General' ~ str_replace(variable, 'year', ''),
+				family == 'Solar' ~ str_replace(variable, 'solar_manipulation', ''),
+				family == 'Turbine' ~ str_replace(variable, 'turbine_manipulation', ''),
+			),
+			variable_adj = ordered(variable_adj, all_levels),
+			color = if_else(
+				(`2.5%` > 0) | (`97.5%` < 0),
+				'0.0 does not fall within the 95% CI',
+				'0.0 falls within the 95% CI',
+			)
+			# variable_adj = fct_rev(variable_adj)
+		) %>%
+	filter(
+		!str_detect(variable_adj, 'Control'),
+		!str_detect(variable_adj, '(Intercept)'),
+	)
+
+FixedEffectsClean %>%
+	filter(family == 'General') %>%
+	ggplot(aes(x = variable_adj, y = estimate, ymin = `2.5%`, ymax = `97.5%`, color = color)) +
+	scale_color_manual(values = c('dodgerblue', 'grey20')) +
 	geom_point() +
 	geom_linerange() +
-	facet_wrap(~manipulation_type, ncol = 1) +
+	geom_hline(yintercept = 0) +
+	labs(color = '', x = 'Variable', y = 'Estimate') +
+	theme(legend.position = 'bottom', 
+				axis.ticks = element_blank())
+
+FixedEffectsClean %>%
+	filter(family != 'General') %>%
+	ggplot(aes(x = variable_adj, y = estimate, ymin = `2.5%`, ymax = `97.5%`, color = color)) +
 	scale_color_manual(values = c('dodgerblue', 'grey20')) +
-	theme(legend.position = 'bottom') +
-	scale_y_continuous(limits = c(-0.01, 0.015)) +
-	labs(y = 'Estimated change over previous year')
+	geom_point() +
+	geom_linerange() +
+	geom_hline(yintercept = 0) +
+	facet_wrap(~family, ncol = 1) +
+	labs(color = '', x = 'Variable', y = 'Estimate') +
+	theme(legend.position = 'bottom', 
+				axis.ticks = element_blank())
 
 
 # What does overall change in value look like over time?
-JoinedData %>%
-	mutate(year = ordered(year)) %>%
-	ggplot(aes(x = year, y = home_price_change)) +
-	geom_hline(yintercept = 0) +
-	geom_boxplot(outlier.alpha = 0.5) +
-	labs(x = 'Year', y = 'Home price change from last year') +
-	scale_y_continuous(limits = c(-0.75, 0.75), breaks = seq(-0.75, 0.75, 0.25))
+# JoinedData %>%
+# 	mutate(year = ordered(year)) %>%
+# 	ggplot(aes(x = year, y = home_price_change)) +
+# 	geom_hline(yintercept = 0) +
+# 	geom_boxplot(outlier.alpha = 0.5) +
+# 	labs(x = 'Year', y = 'Home price change from last year') +
+# 	scale_y_continuous(limits = c(-0.75, 0.75), breaks = seq(-0.75, 0.75, 0.25))
