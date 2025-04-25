@@ -9,6 +9,11 @@ fn_zillow_delta <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/zillow_delt
 fn_turbines <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/turbines.parquet'
 fn_solar <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/solar.parquet'
 
+dir_out <- '/Users/andrewbartnof/Documents/rmi/ggrf_redux/writeup'
+fn_fixef_for_latex <- file.path(dir_out, 'fixef_for_latex.csv')
+fn_fixef_general <- file.path(dir_out, 'fixef_general.png')
+fn_fixef_manipulation <- file.path(dir_out, 'fixef_manipulation.png')
+
 ZillowDelta <- read_parquet(fn_zillow_delta) %>%
 	rename(home_price_change = delta) %>%
 	mutate(zip_code = factor(zip_code, ordered = FALSE))
@@ -44,45 +49,6 @@ Solar <-
 ZillowDelta %>% skim
 Turbines %>% skim
 Solar %>% skim
-
-ZillowDelta %>%
-	skim %>%
-	yank('numeric') %>%
-	as_tibble %>%
-	rename(min = p0, max = p100) %>%
-	select(skim_variable, n_missing, complete_rate, mean, sd, min, max)
-
-ZillowDelta %>%
-	skim %>%
-	yank('factor') %>%
-	as_tibble %>%
-	select(skim_variable, n_missing, complete_rate, ordered, n_unique)
-
-Turbines %>%
-	skim %>% 
-	yank('numeric') %>%
-	as_tibble %>%
-	rename(min = p0, max = p100) %>%
-	select(skim_variable, n_missing, complete_rate, mean, sd, min, max)
-
-Turbines  %>%
-	skim %>% 
-	yank('factor') %>% 
-	as_tibble %>%
-	select(skim_variable, n_missing, complete_rate, ordered, n_unique)
-
-Solar %>%
-	skim %>% 
-	yank('numeric') %>%
-	as_tibble %>%
-	rename(min = p0, max = p100) %>%
-	select(skim_variable, n_missing, complete_rate, mean, sd, min, max)
-
-Solar %>%
-	skim %>% 
-	yank('factor') %>% 
-	as_tibble %>%
-	select(skim_variable, n_missing, complete_rate, ordered, n_unique)
 
 # For each zip code:
 #		note the first and last occurrances of an object.
@@ -162,6 +128,9 @@ CteManipulationTurbines <-
 	select(zip_code, year, manipulation) %>%
 	rename(turbine_manipulation = manipulation)
 
+CteManipulationTurbines %>%
+	distinct(turbine_manipulation)
+
 CteManipulationSolar <-
 	classify_manipulation_state(ZillowDelta, CteSolarDates) %>%
 	select(zip_code, year, manipulation) %>%
@@ -180,9 +149,6 @@ Manipulation <-
 		solar_manipulation = fct_explicit_na(solar_manipulation, 'Censored'),
 		group = 'Manipulation'
 	)
-
-Manipulation
-
 
 # Join the manipulation data to the home price dataset.
 # any zipcode that doesn't have a turbine or solar manipulation should
@@ -208,13 +174,6 @@ JoinedData %>%
 	count(solar_manipulation)
 JoinedData %>% skim
 
-# Note what's happening when one or the other project is 1 year from starting
-JoinedData %>%
-	filter(solar_manipulation==-1|turbine_manipulation==-1) %>%
-	count(solar_manipulation, turbine_manipulation) %>%
-	arrange(desc(n)) %>%
-	as.data.frame
-
 
 # Model
 # let's model year as a general categorical trend
@@ -223,14 +182,14 @@ mod1 <- lmer(
 	REML = FALSE,
 	formula = home_price_change ~ year + solar_manipulation + turbine_manipulation + (1|zip_code)
 )
+mod1
 
 mod0 <- lmer(
 	data = JoinedData,
 	REML = FALSE,
-	formula = home_price_change ~ factor(year, ordered = FALSE) + (1|zip_code)
+	formula = home_price_change ~ year + (1|zip_code)
 )
 anova(mod1, mod0)
-
 # Goodness-of-fit Diagnostics
 
 # residuals look sufficiently normally distributed,
@@ -254,8 +213,27 @@ icc <- performance::icc(mod1)
 icc
 
 
-#### Plot variables ####
+#### Explore coef estimates ####
+FixEf <- fixef(mod1) %>%
+	enframe(name = 'variable', value = 'estimate') 
 
+ConfInt <- confint(mod1, method='Wald') %>%
+	as.data.frame %>%
+	rownames_to_column(var='variable') %>%
+	rename(`2.5%` = 2, `97.5%` = 3) %>%
+	as_tibble %>%
+	drop_na
+
+# https://www.tablesgenerator.com/latex_tables
+FixEf %>%
+	left_join(ConfInt, by = 'variable') %>%
+	as.data.frame %>%
+	mutate_if(is.numeric, round, 3) %>%
+	rename_all(str_to_title) %>%
+	write_csv(fn_fixef_for_latex)
+
+
+# Visualization
 CI <- confint.merMod(mod1, method="Wald") %>%
 	as.data.frame %>%
 	rownames_to_column() %>%
@@ -305,7 +283,8 @@ FixedEffectsClean <-
 		!str_detect(variable_adj, '(Intercept)'),
 	)
 
-FixedEffectsClean %>%
+g <-
+	FixedEffectsClean %>%
 	filter(family == 'General') %>%
 	ggplot(aes(x = variable_adj, y = estimate, ymin = `2.5%`, ymax = `97.5%`, color = color)) +
 	scale_color_manual(values = c('dodgerblue', 'grey20')) +
@@ -314,9 +293,15 @@ FixedEffectsClean %>%
 	geom_hline(yintercept = 0) +
 	labs(color = '', x = 'Variable', y = 'Estimate') +
 	theme(legend.position = 'bottom', 
-				axis.ticks = element_blank())
+				axis.ticks = element_blank(),
+				text = element_text(family = 'serif')
+				); g
+ggsave(filename = fn_fixef_general, plot = g, width = 8, height = 8)
 
-FixedEffectsClean %>%
+
+
+g <-
+	FixedEffectsClean %>%
 	filter(family != 'General') %>%
 	ggplot(aes(x = variable_adj, y = estimate, ymin = `2.5%`, ymax = `97.5%`, color = color)) +
 	scale_color_manual(values = c('dodgerblue', 'grey20')) +
@@ -326,14 +311,6 @@ FixedEffectsClean %>%
 	facet_wrap(~family, ncol = 1) +
 	labs(color = '', x = 'Variable', y = 'Estimate') +
 	theme(legend.position = 'bottom', 
-				axis.ticks = element_blank())
-
-
-# What does overall change in value look like over time?
-# JoinedData %>%
-# 	mutate(year = ordered(year)) %>%
-# 	ggplot(aes(x = year, y = home_price_change)) +
-# 	geom_hline(yintercept = 0) +
-# 	geom_boxplot(outlier.alpha = 0.5) +
-# 	labs(x = 'Year', y = 'Home price change from last year') +
-# 	scale_y_continuous(limits = c(-0.75, 0.75), breaks = seq(-0.75, 0.75, 0.25))
+				text = element_text(family = 'serif'),
+				axis.ticks = element_blank()); g
+ggsave(filename = fn_fixef_manipulation, plot = g, width = 8, height = 8)

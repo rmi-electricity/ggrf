@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.5.2)  23 APR 2025 16:01
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.5.2)  25 APR 2025 16:52
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -104,57 +104,101 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 
 {/usr/local/texlive/2021basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 37.
+(Font)              <7> on input line 39.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 37.
+(Font)              <5> on input line 39.
  [2]
-<study1_solar_facets.png, id=18, 2409.0pt x 2409.0pt>
+<lmer_mod_anova.jpg, id=20, 1015.795pt x 239.89626pt>
+File: lmer_mod_anova.jpg Graphic file (type jpg)
+<use lmer_mod_anova.jpg>
+Package pdftex.def Info: lmer_mod_anova.jpg  used on input line 104.
+(pdftex.def)             Requested size: 310.4979pt x 73.32747pt.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: No positions in optional float specifier.
+               Default added (so using `tbp') on input line 118.
+
+
+LaTeX Warning: Float too large for page by 26.0pt on input line 169.
+
+[3] [4]
+<fixef_general.png, id=27, 2409.0pt x 2409.0pt>
+File: fixef_general.png Graphic file (type png)
+<use fixef_general.png>
+Package pdftex.def Info: fixef_general.png  used on input line 178.
+(pdftex.def)             Requested size: 310.4979pt x 310.49763pt.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<fixef_manipulation.png, id=29, 2409.0pt x 2409.0pt>
+File: fixef_manipulation.png Graphic file (type png)
+<use fixef_manipulation.png>
+Package pdftex.def Info: fixef_manipulation.png  used on input line 186.
+(pdftex.def)             Requested size: 310.4979pt x 310.49763pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<study1_solar_facets.png, id=30, 2409.0pt x 2409.0pt>
 File: study1_solar_facets.png Graphic file (type png)
 <use study1_solar_facets.png>
-Package pdftex.def Info: study1_solar_facets.png  used on input line 76.
+Package pdftex.def Info: study1_solar_facets.png  used on input line 221.
 (pdftex.def)             Requested size: 310.4979pt x 310.49763pt.
-<study1_turbine_facets.png, id=20, 2409.0pt x 2409.0pt>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[5 <./lmer_mod_anova.jpg>]
+<study1_turbine_facets.png, id=34, 2409.0pt x 2409.0pt>
 File: study1_turbine_facets.png Graphic file (type png)
 <use study1_turbine_facets.png>
-Package pdftex.def Info: study1_turbine_facets.png  used on input line 88.
+Package pdftex.def Info: study1_turbine_facets.png  used on input line 233.
 (pdftex.def)             Requested size: 310.4979pt x 310.49763pt.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<study1_sample_size.png, id=21, 2409.0pt x 2409.0pt>
+<study1_sample_size.png, id=35, 2409.0pt x 2409.0pt>
 File: study1_sample_size.png Graphic file (type png)
 <use study1_sample_size.png>
-Package pdftex.def Info: study1_sample_size.png  used on input line 100.
+Package pdftex.def Info: study1_sample_size.png  used on input line 245.
 (pdftex.def)             Requested size: 310.4979pt x 310.49763pt.
-[3 <./study1_solar_facets.png>]
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[4 <./study1_turbine_facets.png>] [5 <./study1_sample_size.png>] (./writeup.aux
-) ) 
+[6 <./fixef_general.png>] [7 <./fixef_manipulation.png>] [8 <./study1_solar_fac
+ets.png>] [9 <./study1_turbine_facets.png>] [10 <./study1_sample_size.png>]
+(./writeup.aux)
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ ) 
 Here is how much of TeX's memory you used:
- 1211 strings out of 480445
- 18646 string characters out of 5892392
- 305303 words of memory out of 5000000
- 18519 multiletter control sequences out of 15000+600000
- 408031 words of font info for 42 fonts, out of 8000000 for 9000
+ 1241 strings out of 480445
+ 19183 string characters out of 5892392
+ 316330 words of memory out of 5000000
+ 18543 multiletter control sequences out of 15000+600000
+ 408534 words of font info for 44 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 68i,8n,74p,339b,221s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2021basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx
-10.pfb></usr/local/texlive/2021basic/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmbx12.pfb></usr/local/texlive/2021basic/texmf-dist/fonts/type1/public/amsfonts
-/cm/cmr10.pfb></usr/local/texlive/2021basic/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmr12.pfb></usr/local/texlive/2021basic/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmr17.pfb></usr/local/texlive/2021basic/texmf-dist/fonts/type1/public
-/amsfonts/cm/cmr6.pfb></usr/local/texlive/2021basic/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmr7.pfb></usr/local/texlive/2021basic/texmf-dist/fonts/type1/pu
-blic/amsfonts/cm/cmr8.pfb></usr/local/texlive/2021basic/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmti10.pfb>
-Output written on writeup.pdf (5 pages, 966724 bytes).
+ 68i,8n,74p,445b,221s stack positions out of 5000i,500n,10000p,200000b,80000s
+ </Users/andrewbartnof/Library/texlive/2021basic/texmf-var/fonts/pk/ljfour/jk
+nappen/ec/tcrm1000.600pk></usr/local/texlive/2021basic/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2021basic/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2021basic/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2021basic/texmf-dist/fo
+nts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2021basic/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2021basic/texmf-d
+ist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2021basic/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2021basic/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2021basic/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2021bas
+ic/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
+Output written on writeup.pdf (10 pages, 1373428 bytes).
 PDF statistics:
- 63 PDF objects out of 1000 (max. 8388607)
- 40 compressed objects within 1 object stream
+ 94 PDF objects out of 1000 (max. 8388607)
+ 59 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 31 words of extra memory for PDF output out of 10000 (max. 10000000)
 

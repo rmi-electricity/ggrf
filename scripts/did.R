@@ -13,6 +13,7 @@ fn_solar <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/solar.parquet'
 dir_out <- '/Users/andrewbartnof/Documents/rmi/ggrf_redux/writeup'
 fn_solar_facets <- file.path(dir_out, 'study1_solar_facets.png')
 fn_turbines_facets <- file.path(dir_out, 'study1_turbine_facets.png')
+fn_sample_size <- file.path(dir_out, 'study1_sample_size.png')
 
 Zillow <-
 	read_parquet(fn_zillow) %>%
@@ -240,6 +241,7 @@ labs(
 g
 ggsave(filename = fn_solar_facets, plot = g, width = 8, height = 8)
 
+g <-
 AggregatedByYear %>%
 filter(manipulation == 'Turbines') %>%
 ggplot(aes(x = ordered(relative_year), y = median_price_delta, group = group, color = group)) +
@@ -250,7 +252,8 @@ scale_color_manual(values = c('grey20', 'dodgerblue')) +
 facet_wrap(~target_year) +
 theme(
 	legend.position = 'bottom',
-	axis.ticks = element_blank()
+	axis.ticks = element_blank(),
+	text = element_text(family = 'serif')
 ) +
 labs(
 	color = '', 
@@ -258,6 +261,8 @@ labs(
 	y = 'Median change in home prices',
 	title = 'Turbines'
 )
+g
+ggsave(filename = fn_turbines_facets, plot = g, width = 8, height = 8)
 #	
 		
 
@@ -303,14 +308,25 @@ MedianPriceDelta %>%
 			 subtitle = 'When manipulation (M) is higher than control (C),\nthen properties in the same zip-code as a green energy project have a higher increase in property value\nvis-a-vis the previous year') 
 
 # Note that we have some pretty small sample sizes here
+g <-
 	bind_rows(
 		CollectedSolar %>% mutate(manipulation = 'Solar'),
 		CollectedTurbines %>% mutate(manipulation = 'Turbines')
 	) %>%
 	count(year, manipulation, group, name = 'num_observations') %>%
-	spread(group, num_observations) %>%
-		select(Control, Manipulation) %>%
-		colMeans
+	ggplot(aes(x = year, y = num_observations, fill = group, group = group, label = scales::comma(num_observations))) +
+	geom_col(position = 'dodge') +
+	scale_fill_manual(values = c('grey20', 'dodgerblue')) +
+	facet_wrap(group~manipulation, scales = 'free_y') + 
+	scale_y_continuous(labels = scales::comma_format()) +
+	theme(
+		legend.position = 'none',
+		axis.ticks = element_blank(),
+		text = element_text(family = 'serif')
+	) +
+	labs(x = 'Target year of operation', y = 'Sample size', title = 'Sample sizes')
+g	
+ggsave(filename = fn_sample_size, plot = g, width = 8, height = 8)
 #
 
 
