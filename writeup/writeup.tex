@@ -2,7 +2,7 @@
 \usepackage{graphicx}
 \begin{document}
 
-\author{Andrew Bartnof}
+\author{Andrew Bartnof,for RMI}
 \title{Difference-in-Difference Study for GGRF}
 \date{\today}
 \maketitle
@@ -169,6 +169,7 @@ turbine\_manipulationConstruction & 0.002             & -0.003         & 0.007
 \end{table}
 
 Do note that while this model gives quite sensible estimates, we suffer from a relatively low sample size for a model of this complexity.
+We have 412,303 observations in our control group, and only 58,839 in our manipulation group.
 For this reason, this model was slightly rank-defficient.
 (One notable missing value is turbine manipulation for the year just before operation.)
 
@@ -190,30 +191,41 @@ For this reason, this model was slightly rank-defficient.
 
 Figure \ref{fixef_general} shows the annual intercepts for overall home appreciation in the national market.
 Figure \ref{fixef_manipulation} shows what happens when solar and turbine projects are built in a zip-code.
-I interpret these in the following way:
+Bearing in mind that \emph{these fixed-effects don't reflect home prices, but instead, the rates at which home-prices change given different situations}, I interpret these in the following way:
 \begin{itemize}
-\item test
+\item We can posit that any fixed-effect whose 95\% confidence interval includes zero does not significantly differ from no effect at all. 
+Consequently, we can't really glean too much from  most of the trends that we see in the solar and turbine diagram (diagram \ref{fixef_manipulation.png}), because their CIs generaly contain zero. 
+On the other hand, our dataset is kind of small for this kind of model, and highly imbalanced. 
+We can see how small the dataset is because our model is slightly rank-defficient.
+We can see evidence of how imalanced the dataset is in the very slim 95\% CIs in the yearly fixed-effects, when compared to the large ones in the manipulations; this might be because we have so many more observations in our control set than in our manipulation set. 
+I suggest we cautiously try to make sense of the manipulation trends, while acknowledging that without a larger dataset, our conclusions are generally speculative.
+\item The only estimates whose CIs don't include zero are the solar estimates, in the years after the construction is done, and in the periods before and after five years away from construction ('censored'). 
+Given the means to follow-up on this, I would like someone on our team to test the hypothesis that this rate of change that is positive vis-a-vis the baseline rate of change reflects the home-values in these areas quickly returning to what they would be if the solar plant had never been installed.
+That is to say, I don't hypothesize that areas with solar plants have higher property values than areas without; I just think that the rate of change is positive in order to bring us back closer to national norms, once the construction is over. 
+(The fact that the 'censored' value is positive could challenge this hypothesis. Positive censored estimates AFTER construction jibes with my theory; positive censored values BEFORE construction challenge it. But in a model that is already rank-defficient, I can't really slice and dice our data much more to explore this.) 
+\item Homes that are near construction sites appreciate in value slower than homes in control groups, which makes sense to me.
+\item I wonder if property values for zip-codes with turbines never fully rebounds after construction is over, because turbines make a bit of noise and are highly visible.
 \end{itemize}
 
 
 \section{Appendix}
 
-How did the rate of change of home appreciation change for zip-codes that had solar or turbine projects in them?
+I think that the previous model is my best attempt to model this data.
+However, a classic Difference-in-Difference comparison isn't done with a mixed-effects model-- it's done with a two-way fixed-effects model.
+So, in order to honor convention, I model that as well.
+I include it in the appendix for your edification-- so you can see its results, and also, why I take issue with this model.
 
-I think this study is really easy to understand with an example.
-In 1979, Jimmy Carter put solar panels on his house, in zip-code 20500.
-If we wanted to see if this solar panel project impacted the rate of home appreciation in zip-code 20500, we'd do the following:
-Look at the year-over-year rate of home appreciation in 20500 in 1979, and for reference, include the previous few years (say, 1974-1979), and a few years after (say, 1979-1984).
-Let's define the rate of home appreciation here as:
+This model simplifies the previous model by simply asking if the rate of home appreciation changes over time, differently in neighborhoods that DO have solar/turbines developed there versus in neighborhoods that DON'T.
 
+So, for any target year, I note all of the zip-codes that had a solar facilities come online in that target year.
+I track the rate of home appreciation in those (manipulation) zip-codes for five years before, and five years after, the plants came online.
+I then compare this rate of appreciation to the national rate of home appreciation in zip-codes that had neither solar nor turbine facilities built, ever (control).
+Once again, rate of home appreciation is defined as:
 \noindent\textit{(current home price - last year's home price) / (last year's home price). }
 
-Then we'd compare this to the median year-over-year rate of home appreciation of homes across the USA in zip-codes that didn't have any solar panels installed.
-We'd see two trend lines-- that of our manipulation (zip-code 20500), and that of our control (all the other zip-codes without solar panels).
+And once again, I'd do this once with zip-codes that had solar facilities built, and then again with zip-codes that had turbines built.
 
-The problem with the above study is that our manipulation group has an n of 1, so it would be a good idea to expand our manipulation group to all other zip-codes in the USA that had solar panels installed in 1979.
-
-This is the nature of study 1.
+This is the nature of this DiD analysis.
 The results can be seen in figure \ref{study1solarfacets}.
 \begin{figure}[h]
 \centering
@@ -223,9 +235,8 @@ The results can be seen in figure \ref{study1solarfacets}.
 \label{study1solarfacets}
 \end{figure}
 
-Figure \ref{study1solarfacets} provides no useful insight, because it doesn't account for general changes in the real estate market.
+Unfortunately, I don't think there's many lessons to glean from these diagrams, because they \emph{doesn't account for general changes in the real estate market.}
 For example, we can see the market tanking in 2008, but this completely confounds our ability to compare these lines to those a decade later.
-
 Figure\ref{study1turbinefacets} shows us the DiD for turbine facilities, but it suffers from the same shortcomings as figure\ref{study1solarfacets}.
 \begin{figure}[h]
 \centering
@@ -235,54 +246,16 @@ Figure\ref{study1turbinefacets} shows us the DiD for turbine facilities, but it 
 \label{study1turbinefacets}
 \end{figure}
 
-The other issue with study 1 is small sample size (see figure \ref{study1samplesize}). 
+The other issue with this DiD study is, once again, a small sample size (see figure \ref{study1samplesize}). 
 The sample sizes for the manipulation groups pictured here are very small, only a fraction of the size of the control group.
-In addition to this problem, while the observations in the manipulation group change in each of the diagrams, the observations in the manipulation group changes completely. 
+In addition to this problem, while the observations in the manipulation group change in each of the diagrams, the observations in the control group stay the same.
 This means that individual outliers in the control group might be skewing our results.
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.9\linewidth]
 {study1_sample_size.png} 
-\caption{The manipulation groups in study 1 were extremely small}
+\caption{The manipulation groups in the DiD study were extremely small}
 \label{study1samplesize}
 \end{figure}
 
-
-
 \end{document}
-
-
-
-Here is the ANOVA comparing the two models. 
-As you can see, ...
-
-
-
-Here is the full summary as given by R:
-
-And here are the fixed-effects, along with their 95% confidence-intervals.
-We can interpret any fixed-effect whose 95% CI doesn't include zero as much more likely to be an observable phenomenon.
-
-Interpretation:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
