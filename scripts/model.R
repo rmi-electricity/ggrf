@@ -1,3 +1,6 @@
+# Perform multi-level models using LME4 package to predict year-over-year 
+# change in home values as a result of green energy projects
+
 library(tidyverse)
 library(skimr)
 library(arrow)
@@ -50,11 +53,6 @@ ZillowDelta %>% skim
 Turbines %>% skim
 Solar %>% skim
 
-# For each zip code:
-#		note the first and last occurrances of an object.
-#		count time as t-5, during, and t+5
-
-
 # Communities have, on avg, 40 turbines, built within 6.8 years.
 Turbines %>%
 	group_by(zip_code) %>%
@@ -69,8 +67,12 @@ Turbines %>%
 	) %>%
 	skim(n, duration_years)
 
-# Classify all zillow observation dates relative to 
-# first and last dates of operation for new projects.
+#### Classify all zillow observation ####
+# If a zillow zip-code has a project built in it:
+	# If a single project is built within a zip-code, call year of operation 'construction' it's safe to assume there's trucks and tools around
+	# If multiple projects are built within the same zip-code, the period between  the first date of operation and the last date of operation is called 'construction', because we can infer that noisy construction is happening at least in that period.
+	# Re-classify calender dates RELATIVE to date of operation (ie construction) for  first and last dates of operation for new projects. we want year of operation, five years prior, and five years after. 
+	# Any observations more than five years from a construction is 'censored'.
 
 # First, for each zip code that has a turbine, 
 # note all the relevant dates for the turbines- 
@@ -175,8 +177,7 @@ JoinedData %>%
 JoinedData %>% skim
 
 
-# Model
-# let's model year as a general categorical trend
+#### Model ####
 mod1 <- lmer(
 	data = JoinedData,
 	REML = FALSE,
@@ -205,10 +206,11 @@ ks.test(residuals(mod1), 'pnorm')
 
 # ICC
 # the adj. intraclass cor. coef. is 0.021, which 
-# is rather low. this indicates that the fixed-effects
+# is rather low. 
+# (unadjusted is even lower.)
+# this indicates that the fixed-effects
 # are doing much more of the heavy-lifting in our model
 # than the random effects (zip-codes) are, which is good
-# i think.
 icc <- performance::icc(mod1)
 icc
 
@@ -231,7 +233,6 @@ FixEf %>%
 	mutate_if(is.numeric, round, 3) %>%
 	rename_all(str_to_title) %>%
 	write_csv(fn_fixef_for_latex)
-
 
 # Visualization
 CI <- confint.merMod(mod1, method="Wald") %>%

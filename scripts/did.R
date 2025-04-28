@@ -1,3 +1,5 @@
+# Note that this is dispreferred, compared to the multi-level model analysis.
+
 library(tidyverse)
 library(skimr)
 library(arrow)
@@ -9,7 +11,7 @@ fn_turbines <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/turbines.parque
 fn_solar <- '/Volumes/Extreme SSD/ggrf_insurance/clean_data_2/solar.parquet'
 
 
-# images
+# filenames for images
 dir_out <- '/Users/andrewbartnof/Documents/rmi/ggrf_redux/writeup'
 fn_solar_facets <- file.path(dir_out, 'study1_solar_facets.png')
 fn_turbines_facets <- file.path(dir_out, 'study1_turbine_facets.png')
@@ -67,12 +69,6 @@ print(sprintf('%i control zip codes',
 
 year_list <- unique(Zillow$year)
 year_list
-
-
-# Paired Matches
-# For starters, let's look at areas that had:
-# 1 solar manipulation, no turbines
-# year of operation == 2015
 
 
 #### DID for Solar ####
@@ -198,7 +194,7 @@ for (target_year in seq(2008L, 2018L)){
 	CollectedTurbines <- bind_rows(PriceDelta, CollectedTurbines)
 }
 
-
+# Collect all the data just produced into a single table
 AggregatedByYear <-
 	bind_rows(
 		CollectedSolar %>% mutate(manipulation = 'Solar'),
@@ -212,12 +208,16 @@ AggregatedByYear <-
 	group_by(manipulation, target_year, group, relative_year) %>%
 	summarize(median_price_delta = median(price_delta)) %>%
 	ungroup
+
+# QC we should have 11 observation per manipulation per group per target year,
+# (year of operation, five years prior, and five years after)
 AggregatedByYear %>%
 	count(manipulation, target_year, group) %>%
 	pull(n) %>%
 	all(. == 11L)
 
-#
+##### Diagram DiD####
+# first visualize solar, then turbines
 g <-
 AggregatedByYear %>%
 filter(manipulation == 'Solar') %>%
@@ -267,6 +267,11 @@ ggsave(filename = fn_turbines_facets, plot = g, width = 8, height = 8)
 		
 
 
+#### Calculate median price deltas ####
+# to be clear, i suspect it's statistical malpractice to aggregate the above data
+# without controlling for general market trends. but if someone convinced me that
+# it weren't so bad, then this dataviz would be interesting and not statistical
+# malbractice
 
 MedianPriceDelta <-
 	bind_rows(
@@ -307,7 +312,7 @@ MedianPriceDelta %>%
 	labs(x = 'Relative year', y = 'Yearly appreciation', title = 'Property appreciation v previous year', 
 			 subtitle = 'When manipulation (M) is higher than control (C),\nthen properties in the same zip-code as a green energy project have a higher increase in property value\nvis-a-vis the previous year') 
 
-# Note that we have some pretty small sample sizes here
+#### Visualize sample sizes ####
 g <-
 	bind_rows(
 		CollectedSolar %>% mutate(manipulation = 'Solar'),
@@ -327,69 +332,3 @@ g <-
 	labs(x = 'Target year of operation', y = 'Sample size', title = 'Sample sizes')
 g	
 ggsave(filename = fn_sample_size, plot = g, width = 8, height = 8)
-#
-
-
-
-
-
-
-
-
-CollectedResults %>%
-	mutate(
-		relative_year = year - target_year,
-		relative_year = ordered(relative_year)
-	) %>%
-	group_by(relative_year, group) %>%
-	summarize(median_price_delta = median(price_delta)) %>%
-	ungroup %>%
-	spread(group, median_price_delta) %>%
-	mutate(is_control_greater = Control > Manipulation) %>%
-	filter(relative_year > -6) %>%
-	ggplot(aes(x = relative_year, xend = relative_year, y = Control, yend = Manipulation, color = is_control_greater)) + 
-	geom_segment(arrow = arrow(length = unit(0.5, "cm")))
-	
-
-	# ggplot(aes())
-	
-	
-	
-CollectedResults %>%
-	mutate(
-		relative_year = year - target_year,
-		relative_year = ordered(relative_year)
-	) %>%
-	group_by(relative_year, group) %>%
-	summarize(median_price_delta = median(price_delta)) %>%
-	ungroup %>%
-	ggplot(aes(x = relative_year, fill = group, group = group, y = median_price_delta)) +
-	geom_col(position = 'dodge') +
-	scale_fill_manual(values = c('grey20', 'dodgerblue'))
-
-CollectedResults %>%
-	mutate(relative_year = year - target_year) %>%
-	group_by(group, relative_year) %>%
-	summarize(
-		median_price_delta = median(price_delta),
-		low = median_price_delta - sd(price_delta),
-		high = median_price_delta + sd(price_delta),
-	) %>%
-	ungroup %>%
-	ggplot(aes(x = relative_year, y = median_price_delta, group = group, color = group)) +
-	geom_line() +
-	geom_line(aes(y = low), linetype = 'dashed') +
-	geom_line(aes(y = high), linetype = 'dashed')
-
-
-PriceDelta %>%
-	group_by(year, group) %>%
-	summarize(
-		median_price_delta = median(price_delta),
-		low = median(price_delta) - sd(price_delta),
-		high = median(price_delta) + sd(price_delta),
-	) %>%
-	ungroup %>%
-	ggplot(aes(x = year, y = median_price_delta, ymin = low, ymax = high, group = group , color = group)) +
-	geom_vline(xintercept = 2015) +
-	geom_line()

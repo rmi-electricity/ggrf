@@ -1,3 +1,10 @@
+# ELT on solar data, link each observation to a zip-code
+
+# Perform the kinds of essential ELT that has to happen (eg matching locations
+# of turbines to zip-codes), but leave feature engineering 
+# (eg leaving observations as-is, or aggregating them) to the individual model 
+# scripts.
+
 library(tidyverse)
 library(sf)
 library(skimr)
@@ -31,7 +38,8 @@ SolarPoints <-
 SolarPoints <- st_transform(SolarPoints, crs = epsg_standard)
 
 #	Iterate through each solar panel, note the zip code centroid that's closest.
-# Record these zip codes in a list
+# Record these zip codes in a list.
+# Note that this takes a while to run
 matches_list <- rep('', nrow(SolarPoints))
 for (i in seq(1, nrow(SolarPoints))){
 	print(sprintf('%i of %i: %.3f', i, nrow(SolarPoints), i / nrow(SolarPoints)))

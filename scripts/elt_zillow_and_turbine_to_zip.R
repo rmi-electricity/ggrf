@@ -1,5 +1,9 @@
-# Perform ELT on the turbines table, zillow house values table, and the 
-# zip-codes table. Save the resulting 'clean' files to a subfolder
+# ELT on Zillow data, and link turbines to zip-codes
+
+# Perform the kinds of essential ELT that has to happen (eg matching locations
+# of turbines to zip-codes), but leave feature engineering 
+# (eg leaving observations as-is, or aggregating them) to the individual model 
+# scripts.
 
 library(tidyverse)
 library(skimr)
@@ -48,6 +52,7 @@ ZillowYearlyMedianHomePrices %>%
 	is.na %>% 
 	colSums()
 
+# Now calculate year over year change in home prices
 year_range <- seq(min(ZillowYearlyMedianHomePrices$year), max(ZillowYearlyMedianHomePrices$year))
 
 CteZillowDelta <-
@@ -76,6 +81,7 @@ ZillowClean %>% write_parquet(fn_zillow_clean)
 # Turbines
 # Note each turbine's unique id; convert year of operation to a 'date' object;
 # save long and lat
+# Note that this for-loop deals with GIS data so it takes a while to run.
 
 Turbines <- sf::read_sf(fn_turbines)
 Turbines <- st_transform(Turbines, crs = epsg_standard)
