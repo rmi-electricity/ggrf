@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.5.2)  26 APR 2025 12:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.5.2)  28 APR 2025 10:52
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -108,7 +108,7 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <5> on input line 39.
  [2]
-<lmer_mod_anova.jpg, id=20, 1015.795pt x 239.89626pt>
+<lmer_mod_anova.jpg, id=18, 1015.795pt x 239.89626pt>
 File: lmer_mod_anova.jpg Graphic file (type jpg)
 <use lmer_mod_anova.jpg>
 Package pdftex.def Info: lmer_mod_anova.jpg  used on input line 104.
@@ -117,90 +117,84 @@ Package pdftex.def Info: lmer_mod_anova.jpg  used on input line 104.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
+[3]
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 118.
+               Default added (so using `tbp') on input line 119.
 
 
-LaTeX Warning: Float too large for page by 26.0pt on input line 169.
+LaTeX Warning: Float too large for page by 26.0pt on input line 170.
 
-[3] [4]
-<fixef_general.png, id=27, 2409.0pt x 2409.0pt>
+<fixef_general.png, id=24, 2409.0pt x 2409.0pt>
 File: fixef_general.png Graphic file (type png)
 <use fixef_general.png>
-Package pdftex.def Info: fixef_general.png  used on input line 179.
+Package pdftex.def Info: fixef_general.png  used on input line 180.
 (pdftex.def)             Requested size: 310.4979pt x 310.49763pt.
-
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<fixef_manipulation.png, id=29, 2409.0pt x 2409.0pt>
+<fixef_manipulation.png, id=26, 2409.0pt x 2409.0pt>
 File: fixef_manipulation.png Graphic file (type png)
 <use fixef_manipulation.png>
-Package pdftex.def Info: fixef_manipulation.png  used on input line 187.
+Package pdftex.def Info: fixef_manipulation.png  used on input line 188.
 (pdftex.def)             Requested size: 310.4979pt x 310.49763pt.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-
-LaTeX Warning: Reference `fixef_manipulation.png' on page 5 undefined on input 
-line 197.
-
-[5 <./lmer_mod_anova.jpg>] [6 <./fixef_general.png>] [7 <./fixef_manipulation.p
-ng>]
+[4 <./lmer_mod_anova.jpg>] [5] [6 <./fixef_general.png>] [7 <./fixef_manipulati
+on.png>]
 <study1_solar_facets.png, id=42, 2409.0pt x 2409.0pt>
 File: study1_solar_facets.png Graphic file (type png)
 <use study1_solar_facets.png>
-Package pdftex.def Info: study1_solar_facets.png  used on input line 233.
+Package pdftex.def Info: study1_solar_facets.png  used on input line 241.
 (pdftex.def)             Requested size: 310.4979pt x 310.49763pt.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
 <study1_turbine_facets.png, id=43, 2409.0pt x 2409.0pt>
 File: study1_turbine_facets.png Graphic file (type png)
 <use study1_turbine_facets.png>
-Package pdftex.def Info: study1_turbine_facets.png  used on input line 244.
+Package pdftex.def Info: study1_turbine_facets.png  used on input line 252.
 (pdftex.def)             Requested size: 310.4979pt x 310.49763pt.
-
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 <study1_sample_size.png, id=44, 2409.0pt x 2409.0pt>
 File: study1_sample_size.png Graphic file (type png)
 <use study1_sample_size.png>
-Package pdftex.def Info: study1_sample_size.png  used on input line 256.
+Package pdftex.def Info: study1_sample_size.png  used on input line 264.
 (pdftex.def)             Requested size: 310.4979pt x 310.49763pt.
-[8 <./study1_solar_facets.png>]
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[9 <./study1_turbine_facets.png>] [10 <./study1_sample_size.png>]
-(./writeup.aux)
-
-LaTeX Warning: There were undefined references.
-
- ) 
+[8] [9 <./study1_solar_facets.png>] [10 <./study1_turbine_facets.png>] [11 <./s
+tudy1_sample_size.png>] (./writeup.aux) ) 
 Here is how much of TeX's memory you used:
- 1242 strings out of 480445
- 19207 string characters out of 5892392
- 317330 words of memory out of 5000000
- 18544 multiletter control sequences out of 15000+600000
+ 1240 strings out of 480445
+ 19175 string characters out of 5892392
+ 316331 words of memory out of 5000000
+ 18542 multiletter control sequences out of 15000+600000
  408534 words of font info for 44 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 68i,8n,74p,445b,221s stack positions out of 5000i,500n,10000p,200000b,80000s
- </Users/andrewbartnof/Library/texlive/2021basic/texmf-var/fonts/pk/ljfour/jk
-nappen/ec/tcrm1000.600pk></usr/local/texlive/2021basic/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2021basic/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2021basic/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2021basic/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2021basic/texmf-dist
-/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2021basic/texmf-d
-ist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2021basic/texmf
--dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2021basic/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2021basic/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2021bas
-ic/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on writeup.pdf (10 pages, 1379422 bytes).
+ 68i,8n,74p,445b,258s stack positions out of 5000i,500n,10000p,200000b,80000s
+ </Users/andrewbartnof/Library/texlive
+/2021basic/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600pk></usr/local/tex
+live/2021basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local
+/texlive/2021basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/l
+ocal/texlive/2021basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></us
+r/local/texlive/2021basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb><
+/usr/local/texlive/2021basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pf
+b></usr/local/texlive/2021basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.
+pfb></usr/local/texlive/2021basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr
+7.pfb></usr/local/texlive/2021basic/texmf-dist/fonts/type1/public/amsfonts/cm/c
+mr8.pfb></usr/local/texlive/2021basic/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmti10.pfb></usr/local/texlive/2021basic/texmf-dist/fonts/type1/public/amsfont
+s/cm/cmtt10.pfb>
+Output written on writeup.pdf (11 pages, 1381064 bytes).
 PDF statistics:
- 94 PDF objects out of 1000 (max. 8388607)
- 59 compressed objects within 1 object stream
+ 97 PDF objects out of 1000 (max. 8388607)
+ 61 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  31 words of extra memory for PDF output out of 10000 (max. 10000000)
 

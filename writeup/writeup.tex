@@ -15,16 +15,16 @@ In the appendix, I present another model, which uses a more conventional two-way
 
 \section{Brief Background}
 
-If green energy projects (eg solar farms and wind turbines) are built near residential areas, these projects can impact local home values, lowering the rate at which they appreciate vis-\`a-vis homes in other areas.
-This gives home-owners an incentive to resist green projects in their neighborhoods, even if they support green projects in general.
+If green energy projects (eg solar farms and wind turbines) are built near residential areas, these projects could impact local home values.
+If these home near green energy projects either appreciate slower, or depreciate faster, than other homes which are not near green energy projects, then home-owners are incentivized to resist green projects in their neighborhoods, even if they support green projects in general.
 
-We want to quantify this potential relative change in the rate in which homes appreciate near green energy projects, so that we can help to develop a new kind of financial project; a parametric risk insurance payout for home-owners near green energy projects.
-The idea is that, for a limited amount of time, while the green energy projects artificially depress local homes' values, any home-owner that sells their house can be compensated for this drop in home-value.
+We want to quantify the rate in which which homes appreciate near green energy projects and compare it to baseline home appreciation rates, so that we can help to develop a new kind of financial project; a parametric risk insurance payout for home-owners near green energy projects.
+The idea is that, for a limited amount of time, while the green energy projects might artificially depress local homes' values, any home-owner that sells their house could be compensated for this drop in home-value.
 
 
 \section{Data}
 
-Naturally, there are a few dimensions we'd like to better understand-- do all green energy projects lower the rates at which homes appreciate? how far need a house be from a project before its value is impacted? and how long does this change in home value endure?
+Naturally, there are a few dimensions we'd like to better understand-- do all green energy projects lower the rates at which homes appreciate? how close does a house need to be to a green energy project before its value is impacted? and how long does this change in home value endure?
 This is a rather 'cheap-and-cheerful' analysis using readily-available datasets, so I'll attempt to answer these, while making sensible assumptions where necessary.
 
 In this paper, I'll  refer to homes that are near green energy projects as \textbf{manipulation} homes, and homes that are not near green energy projects as \textbf{control} homes.
@@ -44,11 +44,11 @@ This dataset\footnote{
 Rand, J.T., Kramer, L.A., Garrity, C.P. et al. A continuously updated, geospatially rectified database of utility-scale wind turbines in the United States. Sci Data 7, 15 (2020). https://doi.org/10.1038/s41597-020-0353-6} lists the locations and years of operation of thousands of wind turbines.
 
 \subsection{Data Notes}
-Each observation in the solar and turbine datasets is represented as a polygon in a shapefile.
-The Zillow file commits us, however, to using zip-codes as our finest geographic granularity.
+Each observation in the solar and turbine datasets is represented as a polygon, with latitude and longitude.
+However, the Zillow file commits us to using zip-codes as our finest geographic granularity.
 Consequently, I assign each solar and turbine project to a single zip-code. 
 Any homes that share a zip-code with a green project are considered manipulations.
-(We'd prefer not to say that a home either \emph{is}, or \emph{isn't}, near a solar project as if it's a binary metric, but it'll do.)
+(This assumption is a little clumsy; we'd like to know how the distance between a house and a green energy project impacts the rate of change of house values, and here we're rounding distance to 'close' or 'far'; and worse yet, some zip-codes are rather large, and some quite small. Let's just note that in further studies we'd like to study this in finer granularity.)
 
 I also round all dates to the year.
 If there are multiple home values noted in a given zip-code within this year, I take the median home price.
@@ -71,12 +71,12 @@ year + solar_manipulation + turbine_manipulation + (1|zip_code)
 \textbf{Fixed effects}
 \begin{itemize}
 \item Year: the calendar year, represented as an unordered factor. This allows us to represent general market fluctuations (eg the Great Recession) easily.
-\item Solar manipulation: if a zip code ever had a solar plant built there, we encode the zip-code each year as one of the following:
+\item Solar manipulation: if a zip code has a solar plant built there before 2024 (the end of our Zillow dataset), we encode the zip-code each year as one of the following:
 	\begin{itemize}
-	\item Construction: if only one solar plant is built in this zip-code, then 'construction' is synonymous with 'year of operation'. If multiple solar plants are built in this zip-code, this represents the duration between the first plant's year of operation and the last plant's year of operation. 'Construction' indicates that we have faith that during this time period, workers and trucks were around.
+	\item Construction: if only one solar plant is built in this zip-code, then `construction' is synonymous with `year of operation'. If multiple solar plants are built in this zip-code, this represents the duration between the first plant's year of operation and the last plant's year of operation. `Construction' indicates that we have faith that during this time period, workers and trucks were around.
 	\item -5:-1: Years prior to year of first plant's operation
 	\item 1:5: Likewise, years after last plant's operation
-	\item Censored: if we are more than five years before construction, or less than five years after, construction in a zip-code
+	\item Censored: Any year either more than five years before construction, or more than five years after construction
 	\item Control: a zip-code that never gets a solar project
 	\end{itemize}
 \item Turbine manipulation: encoded exactly like solar manipulation
@@ -91,7 +91,7 @@ year + solar_manipulation + turbine_manipulation + (1|zip_code)
 In order to verify whether it's even sensible to try to calculate the impact of green energy projects, we also fit a null model, which omits turbine manipulation and solar manipulation.
 This means that the null model's formula is:
 \begin{verbatim}
-change in home price v. last year ~ year + (1|zip_code)
+rate of home appreciation ~ year + (1|zip_code)
 \end{verbatim}
 .
 
@@ -102,17 +102,18 @@ This indicates that it the turbine and solar manipulations are statistically sig
 \centering
 \includegraphics[width=0.9\linewidth]
 {lmer_mod_anova.jpg} 
-\caption{The full regression model is statistically significant, compared to the null model which omits green energy projects.}
+\caption{The full regression model is statistically significant, compared to the null model which omits green energy projects. This indicates that the impact of green energy projects is statistically significant.}
 \label{anova}
 \end{figure}
 
-The unadjusted intra-class correlation (ICC) is 0.011, which is quite low.
-A high ICC would that a lot of the variance that is explained in the full model is done by the random-effects.
-Rather, our fixed effects are explaining a lot of the variance-- and the effects we're trying to model are all fixed-effects.
+The unadjusted intra-class correlation (\emph{ICC}) is 0.011, which is quite low.
+A high ICC would indicate that a lot of the variance that is explained in the full model is done by the random-effects.
+Rather, our fixed effects are explaining a lot of the variance. 
+This is auspicious for us, because the effects we're trying to model are all fixed-effects.
 
 \subsection{Estimates}
 
-The fixed effects can be seen in figure \ref{fixef_general} and figure \ref{fixef_manipulation}, but they are listed below in their entirity.
+The fixed effects can be visualized in figure \ref{fixef_general} and figure \ref{fixef_manipulation}, but they are listed below in their entirety.
 Note that any variable whose 95\% CI includes 0.0 can plausibly be said to be negligible.
 
 \begin{table}[]
@@ -170,7 +171,7 @@ turbine\_manipulationConstruction & 0.002             & -0.003         & 0.007
 
 Do note that while this model gives quite sensible estimates, we suffer from a relatively low sample size for a model of this complexity.
 We have 412,303 observations in our control group, and only 58,839 in our manipulation group.
-For this reason, this model was slightly rank-defficient.
+For this reason, this model was slightly rank-deficient.
 (One notable missing value is turbine manipulation for the year just before operation.)
 
 \begin{figure}[h]
@@ -189,22 +190,22 @@ For this reason, this model was slightly rank-defficient.
 \label{fixef_manipulation}
 \end{figure}
 
-Figure \ref{fixef_general} shows the annual intercepts for overall home appreciation in the national market.
-Figure \ref{fixef_manipulation} shows what happens when solar and turbine projects are built in a zip-code.
-Bearing in mind that \emph{these fixed-effects don't reflect home prices, but instead, the rates at which home-prices change given different situations}, I interpret these in the following way:
+Figure \ref{fixef_general} shows the estimated coefficients for overall home appreciation for each calendar year.
+Figure \ref{fixef_manipulation} shows the estimated coefficients for the impact of our manipulations.
+Bearing in mind that \emph{these fixed-effects don't reflect home prices per se, but rather, the rates at which home-prices change} given different situations, I interpret these in the following way:
 \begin{itemize}
 \item We can posit that any fixed-effect whose 95\% confidence interval includes zero does not significantly differ from no effect at all. 
-Consequently, we can't really glean too much from  most of the trends that we see in the solar and turbine diagram (diagram \ref{fixef_manipulation.png}), because their CIs generaly contain zero. 
-On the other hand, our dataset is kind of small for this kind of model, and highly imbalanced. 
-We can see how small the dataset is because our model is slightly rank-defficient.
-We can see evidence of how imalanced the dataset is in the very slim 95\% CIs in the yearly fixed-effects, when compared to the large ones in the manipulations; this might be because we have so many more observations in our control set than in our manipulation set. 
-I suggest we cautiously try to make sense of the manipulation trends, while acknowledging that without a larger dataset, our conclusions are generally speculative.
-\item The only estimates whose CIs don't include zero are the solar estimates, in the years after the construction is done, and in the periods before and after five years away from construction ('censored'). 
-Given the means to follow-up on this, I would like someone on our team to test the hypothesis that this rate of change that is positive vis-a-vis the baseline rate of change reflects the home-values in these areas quickly returning to what they would be if the solar plant had never been installed.
-That is to say, I don't hypothesize that areas with solar plants have higher property values than areas without; I just think that the rate of change is positive in order to bring us back closer to national norms, once the construction is over. 
-(The fact that the 'censored' value is positive could challenge this hypothesis. Positive censored estimates AFTER construction jibes with my theory; positive censored values BEFORE construction challenge it. But in a model that is already rank-defficient, I can't really slice and dice our data much more to explore this.) 
+Consequently, we can't really glean too much from  most of the trends that we see in the solar and turbine diagram (diagram \ref{fixef_manipulation}), because their CIs generally contain zero. 
+On the other hand, our dataset is kind of small for this kind of model, and highly imbalanced.
+We can see evidence of how imbalanced the dataset is in the very slim 95\% CIs in the yearly fixed-effects, when compared to the large ones in the manipulations; this might be because we have so many more observations in our control set than in our manipulation set. 
+\emph{I suggest we cautiously try to make sense of the manipulation estimates, while acknowledging that without a larger dataset, our conclusions are generally speculative.}
+\item The only estimates whose CIs don't include zero are the solar estimates, in the years after the construction is done, and in the periods before and after five years away from construction (`censored'). 
+In a future study, I would like someone on our team to test the hypothesis that this rate of change that is positive vis-a-vis the baseline rate of change reflects the home-values in these areas quickly returning to what they would be if the solar plant had never been installed.
+That is to say, I don't hypothesize that areas with solar plants have higher property values than areas without; I just think that the rate of change is positive in order to regress us back to national mean home prices, once the construction is over. 
+This would be because nobody wants to live near a construction project, but once the trucks and power tools have stopped whirring and grinding, people decide that living next to a fully-operational solar plants isn't so bad after all.
+(The fact that the 'censored' value is positive could challenge this hypothesis. Positive censored estimates \emph{after} construction jibes with my theory; positive censored values \emph{before} construction challenge it. But in a model that is already rank-deficient, I can't really slice and dice our data much more to explore this.) 
 \item Homes that are near construction sites appreciate in value slower than homes in control groups, which makes sense to me.
-\item I wonder if property values for zip-codes with turbines never fully rebounds after construction is over, because turbines make a bit of noise and are highly visible.
+\item I wonder if property values for zip-codes with turbines never fully rebound after construction is over, because unlike solar plants, turbines make a bit of noise and are highly visible.
 \end{itemize}
 
 
@@ -213,19 +214,26 @@ That is to say, I don't hypothesize that areas with solar plants have higher pro
 I think that the previous model is my best attempt to model this data.
 However, a classic Difference-in-Difference comparison isn't done with a mixed-effects model-- it's done with a two-way fixed-effects model.
 So, in order to honor convention, I model that as well.
-I include it in the appendix for your edification-- so you can see its results, and also, why I take issue with this model.
+I include it here in the appendix for your edification-- so you can see its results, and also, why I take issue with this model.
 
-This model simplifies the previous model by simply asking if the rate of home appreciation changes over time, differently in neighborhoods that DO have solar/turbines developed there versus in neighborhoods that DON'T.
+This model simplifies the previous model by simply asking if the rate of home appreciation changes over time differently in neighborhoods that \emph{do} have solar/turbines developed there versus in neighborhoods that \emph{don't}:
+\begin{verbatim}
+(past v present) x (manipulation v control)
+\end{verbatim}
 
-So, for any target year, I note all of the zip-codes that had a solar facilities come online in that target year.
-I track the rate of home appreciation in those (manipulation) zip-codes for five years before, and five years after, the plants came online.
-I then compare this rate of appreciation to the national rate of home appreciation in zip-codes that had neither solar nor turbine facilities built, ever (control).
+So, for any target year, I note all of the zip-codes where a single green energy project comes online in that target year.
 Once again, rate of home appreciation is defined as:
 \noindent\textit{(current home price - last year's home price) / (last year's home price). }
+I track the rate of home appreciation in these manipulation zip-codes for 11 years-- the year of operation, the five years before, and the five years after.
+I also track the rate of home appreciation in our control set, which is all of the zip-codes in our Zillow dataset that never gets a single green energy project built in it.
+If the median rates of change in our control group differ from the median rates of change in our manipulation group, then we have a DiD trend that we can study!
 
-And once again, I'd do this once with zip-codes that had solar facilities built, and then again with zip-codes that had turbines built.
+Nota bene:
+\begin{itemize}
+\item Zip-codes with more than one green energy project are excluded from this study-- it's too complicated for a single model like this.
+\item Perhaps if we have eleven observations representing the passage of time, this isn't exactly a two-way fixed-effect model?
+\end{itemize}
 
-This is the nature of this DiD analysis.
 The results can be seen in figure \ref{study1solarfacets}.
 \begin{figure}[h]
 \centering
@@ -235,9 +243,9 @@ The results can be seen in figure \ref{study1solarfacets}.
 \label{study1solarfacets}
 \end{figure}
 
-Unfortunately, I don't think there's many lessons to glean from these diagrams, because they \emph{doesn't account for general changes in the real estate market.}
+You can see the results in figures \ref{study1turbinefacets} and \ref{study1solarfacets}, but I don't think there's many lessons to glean from these diagrams;
+These diagrams \emph{can't account for general changes in the real estate market.}
 For example, we can see the market tanking in 2008, but this completely confounds our ability to compare these lines to those a decade later.
-Figure\ref{study1turbinefacets} shows us the DiD for turbine facilities, but it suffers from the same shortcomings as figure\ref{study1solarfacets}.
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.9\linewidth]
